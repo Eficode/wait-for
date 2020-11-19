@@ -1,11 +1,11 @@
-FROM node:alpine
-
-RUN apk add --no-cache bash
-
-RUN mkdir -p /app
+FROM node:alpine as test-env
+RUN apk add --no-cache bash && mkdir -p /app
 WORKDIR /app
-
 COPY . /app
-RUN npm install
+RUN npm install && npm run test
 
-CMD ./node_modules/.bin/bats wait-for.bats
+FROM alpine:edge
+RUN apk add --no-cache curl
+ENTRYPOINT ["/wait-for"]
+CMD ["--help"]
+COPY --from=test-env /app/wait-for /wait-for
